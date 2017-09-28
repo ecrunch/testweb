@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Star Hammer</title>
+
+
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <link href="static/css/jumbotron-narrow.css" rel="stylesheet">
+
+    <script src="static/js/angular.js"></script>
+
+    <script>
+        angular.module('myApp', [])
+            .controller('HomeCtrl', function($scope, $http) {
+                $scope.info = {};
+
+                $scope.showData = function(){
+                    $http({
+                        method: 'POST',
+                        url: '/getAllData',
+                    }).then(function(response) {
+                        $scope.datas = response.data;
+                        console.log($scope.datas);
+                    }, function(error) {
+                        console.log(error);
+                    });
+                }
+
+                $scope.addData = function(){   
+                    $http({
+                        method: 'POST',
+                        url: '/addData',
+                        data: {info:$scope.info}
+                    }).then(function(response) {
+                        $scope.showData();
+                        $('#addPopUp').modal('hide')
+                        $scope.info = {}
+                    }, function(error) {
+                        console.log(error);
+                    });
+                }
+
+                $scope.updateData = function(id){
+                
+                    $http({
+                        method: 'POST',
+                        url: '/updateData',
+                        data: {info:$scope.info}
+                    }).then(function(response) {
+                        console.log(response.data);
+                        $scope.showData();
+                        $('#addPopUp').modal('hide')
+                    }, function(error) {
+                        console.log(error);
+                    });
+                }
+
+                $scope.deleteData = function(id){
+                    $scope.deleteId = id;
+                    $http({
+                        method: 'POST',
+                        url: '/deleteData',
+                        data: {id:$scope.deleteId}
+                    }).then(function(response) {
+                        console.log(response.data);
+                        $scope.deleteId = '';
+                        $scope.showData();
+                    }, function(error) {
+                        console.log(error);
+                    });
+                }
+
+                $scope.editData = function(id){
+                    $scope.info.id = id;
+                    
+                    $scope.showAdd = false;
+                    
+                    $http({
+                        method: 'POST',
+                        url: '/getData',
+                        data: {id:$scope.info.id}
+                    }).then(function(response) {
+                        console.log(response);
+                        $scope.info = response.data;
+                        $('#addPopUp').modal('show')
+                    }, function(error) {
+                        console.log(error);
+                    });
+                }
+
+                $scope.showAddPopUp = function(){
+                    $scope.showAdd = true;
+                    $scope.info = {};
+                    $('#addPopUp').modal('show')
+                }
+
+                $scope.showData();
+            })  
+
+    </script>
+
+
+
+</head>
+
+<body ng-controller="HomeCtrl">
+
+    <div class="container">
+        <div class="header clearfix">
+            <nav>
+                <ul class="nav nav-pills pull-right">
+                    <li role="presentation" class="active"><a href="#" data-toggle="modal" ng-click="showAddPopUp()">Add</a></li>
+                </ul>
+            </nav>
+            <h3 class="text-muted">Remote Test Exec Manager</h3>
+        </div>
+
+        <div class="bs-example" data-example-id="panel-without-body-with-table">
+            <div class="panel panel-default">
+                <div class="panel-heading">Machine list</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Stock</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="datat in datas track by $index">
+                            <th scope="row">{{'{{$index+1}}'}} ></th>
+                            <td>{{ '{{datat.test1}}' }}</td>
+                            <td>{{ '{{datat.test2}}' }}</td>
+                            <td>{{ '{{datat.id}}' }}</td>
+                            <td></td>
+                            <td></td>
+                            <td><span style="cursor:pointer;" class="glyphicon glyphicon-pencil" ng-click="editData(datat.id)"" aria-hidden="true"></span></td>
+                            <td><span style="cursor:pointer;color:#e43309;" class="glyphicon glyphicon-remove" ng-click="deleteData(datat.id)" aria-hidden="true"></span></td>
+                            <td><span style="cursor:pointer;color:#3c763d;" class="glyphicon glyphicon-play" aria-hidden="true"></span></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="modal fade" id="addPopUp" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel" >Test</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="test1" class="control-label">Test Field 1:</label>
+                            <input type="text" class="form-control" ng-model="info.test1" id="txtDevice">
+                        </div>
+                        <div class="form-group">
+                            <label for="test2" class="control-label">Test Field 2:</label>
+                            <input type="text" class="form-control" ng-model="info.test2" id="txtIP">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button"  class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button ng-show="!showAdd" id="btnAdd" ng-click="updateData()" type="button" class="btn btn-primary">Update Data</button> 
+                    <button ng-show="showAdd" id="btnAdd" ng-click="addData()" type="button" class="btn btn-primary">Add Data</button>   
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+
+
+    <script src="static/js/jquery.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
