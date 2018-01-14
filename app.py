@@ -2,13 +2,20 @@ from flask import Flask,render_template,jsonify,json,request
 from testdb import db
 from testdb import tester
 import pdb
-
-app = Flask(__name__)
-
+import logging
+from twilio import twiml
+from twilio.twiml.messaging_response import Message, MessagingResponse
+import os
 db.create_all()
 
+app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db.init_app(app)
 users = tester.query.all()
 rows = db.session.query(tester).count()
+
+
 
 @app.route('/')
 def hello_world():
@@ -16,9 +23,9 @@ def hello_world():
 
 @app.route('/getAllData',methods=['POST'])
 def getAllList():
-	users = tester.query.all()
-	rows = db.session.query(tester).count()
 	try:
+		users = tester.query.all()
+		rows = db.session.query(tester).count()
 		dataList = []
 		for i in range(0,rows):
 			dataItem = {
@@ -35,6 +42,7 @@ def getAllList():
 
 @app.route('/getData',methods=['POST'])
 def getData():
+    logging.info('Here')
     try:
         dataID = request.json['id']
         dataRow = tester.query.filter_by(id=dataID).first()
@@ -90,7 +98,23 @@ def deleteData():
         return jsonify(status='OK',message='deletion successful')
     except Exception, e:
         return jsonify(status='ERROR',message=str(e))
+@app.route('/sms',methods = ['POST'])
+def sms():
+	number = request.form['From']
+	message_body = request.form['Body']
+	msg_list = message_body.split(" ")
+	
+	taco = tester(msg_list[0], msg_list[1])
 
+        db.session.add(taco)
+        db.session.commit()
+
+	resp = MessagingResponse()
+	if number == '+13125689880':
+		resp.message('Hello Casey, {}'.format(msg_list[1]))
+	else:
+		resp.message('Hello {}, Fuck you'.format(number))
+	return str(resp)
 
 
 if __name__ == '__main__':

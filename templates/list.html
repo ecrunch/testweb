@@ -38,7 +38,8 @@
                 }
 
                 $scope.addData = function(){   
-                    $http({
+                    console.log($scope.info);
+		    $http({
                         method: 'POST',
                         url: '/addData',
                         data: {info:$scope.info}

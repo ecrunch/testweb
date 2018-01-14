@@ -3,10 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 db = SQLAlchemy(app)
-
-
+db.init_app(app)
 class tester(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test1 = db.Column(db.String(80), unique=True)
